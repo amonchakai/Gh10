@@ -1,5 +1,5 @@
 # Gh10
-Github client for BlackBerry© 10. This work is currently meant to be used a library enabling developers to get feedback from their users about their applications.
+Github client for BlackBerry© 10. This work is currently meant to be used as a library enabling developers to get feedback from their users about their applications.
 
 Gh10, Copyright (C) 2015, Amonchakai
 
