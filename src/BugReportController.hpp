@@ -11,13 +11,28 @@
 #include <QtCore/QObject>
 #include <bb/cascades/ListView>
 
+class QNetworkAccessManager;
+class IssueListItem;
+
 class BugReportController : public QObject {
     Q_OBJECT;
 
 
 private:
 
+    static QMap<QString, int>        m_Labels;
+
     bb::cascades::ListView          *m_ListView;
+    QNetworkAccessManager           *m_NetworkAccessManager;
+
+    int                              m_TypeIssue;
+    QList<IssueListItem*>            m_Issues;
+
+
+
+    void parseIssues                 (const QString& page);
+    void parseOneIssue               (const QString& issue);
+    void updateView                  ();
 
 
 public:
@@ -34,9 +49,13 @@ public Q_SLOTS:
     void loadIssues                  (int typeIssues);
 
 
+
+    void checkReplyIssues            ();
+
+
 Q_SIGNALS:
 
-
+    void completed();
 
 
 };

@@ -2,6 +2,24 @@
 <!DOCTYPE TS>
 <TS version="2.0">
 <context>
+    <name>ListIssues</name>
+    <message>
+        <location filename="../assets/ListIssues.qml" line="67"/>
+        <source>Loading, please wait.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/ListIssues.qml" line="67"/>
+        <source>No issues in this category.</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/ListIssues.qml" line="200"/>
+        <source>New</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>main</name>
     <message>
         <location filename="../assets/main.qml" line="52"/>
@@ -14,22 +32,26 @@
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="97"/>
+        <location filename="../assets/main.qml" line="94"/>
+        <location filename="../assets/main.qml" line="99"/>
         <source>Bug</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="123"/>
+        <location filename="../assets/main.qml" line="121"/>
+        <location filename="../assets/main.qml" line="127"/>
         <source>Enhancement</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="149"/>
+        <location filename="../assets/main.qml" line="150"/>
+        <location filename="../assets/main.qml" line="155"/>
         <source>Need Help</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/main.qml" line="177"/>
+        <location filename="../assets/main.qml" line="178"/>
+        <location filename="../assets/main.qml" line="185"/>
         <source>Comments</source>
         <translation type="unfinished"></translation>
     </message>

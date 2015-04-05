@@ -90,6 +90,8 @@ NavigationPane {
                                 bugReport.bpage = listIssues.createObject();
                             }
                             bugReport.bpage.typeIssue = 1;
+                            bugReport.bpage.catImg = "asset:///images/BugReport.png";
+                            bugReport.bpage.category = qsTr("Bug");
                             navBug.push(bugReport.bpage);
                         }
                     }
@@ -115,6 +117,8 @@ NavigationPane {
                                 bugReport.bpage = listIssues.createObject();
                             }
                             bugReport.bpage.typeIssue = 2;
+                            bugReport.bpage.catImg = "asset:///images/EnhancementRequest.png";
+                            bugReport.bpage.category = qsTr("Enhancement");
                             navBug.push(bugReport.bpage);
                         }
                         
@@ -142,6 +146,8 @@ NavigationPane {
                                 bugReport.bpage = listIssues.createObject();
                             }
                             bugReport.bpage.typeIssue = 3;
+                            bugReport.bpage.catImg = "asset:///images/HelpRequest.png";
+                            bugReport.bpage.category = qsTr("Need Help");
                             navBug.push(bugReport.bpage);
                         }
                     }
@@ -168,6 +174,8 @@ NavigationPane {
                                 bugReport.bpage = listIssues.createObject();         
                             }
                             bugReport.bpage.typeIssue = 4;
+                            bugReport.bpage.catImg = "asset:///images/BlablaRequest.png";
+                            bugReport.bpage.category = qsTr("Comments");
                             navBug.push(bugReport.bpage);
 
                         }
