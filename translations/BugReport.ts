@@ -2,6 +2,43 @@
 <!DOCTYPE TS>
 <TS version="2.0">
 <context>
+    <name>BugReport</name>
+    <message>
+        <location filename="../assets/BugReport.qml" line="65"/>
+        <source>HFR10</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/BugReport.qml" line="73"/>
+        <source>Bug report center</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/BugReport.qml" line="107"/>
+        <location filename="../assets/BugReport.qml" line="112"/>
+        <source>Bug</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/BugReport.qml" line="134"/>
+        <location filename="../assets/BugReport.qml" line="140"/>
+        <source>Enhancement</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/BugReport.qml" line="163"/>
+        <location filename="../assets/BugReport.qml" line="168"/>
+        <source>Need Help</source>
+        <translation type="unfinished"></translation>
+    </message>
+    <message>
+        <location filename="../assets/BugReport.qml" line="191"/>
+        <location filename="../assets/BugReport.qml" line="198"/>
+        <source>Comments</source>
+        <translation type="unfinished"></translation>
+    </message>
+</context>
+<context>
     <name>BugReportController</name>
     <message>
         <location filename="../src/BugReportController.cpp" line="485"/>
@@ -108,43 +145,6 @@
     <message>
         <location filename="../assets/ListIssues.qml" line="208"/>
         <source>New</source>
-        <translation type="unfinished"></translation>
-    </message>
-</context>
-<context>
-    <name>main</name>
-    <message>
-        <location filename="../assets/main.qml" line="52"/>
-        <source>HFR10</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../assets/main.qml" line="60"/>
-        <source>Bug report center</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../assets/main.qml" line="94"/>
-        <location filename="../assets/main.qml" line="99"/>
-        <source>Bug</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../assets/main.qml" line="121"/>
-        <location filename="../assets/main.qml" line="127"/>
-        <source>Enhancement</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../assets/main.qml" line="150"/>
-        <location filename="../assets/main.qml" line="155"/>
-        <source>Need Help</source>
-        <translation type="unfinished"></translation>
-    </message>
-    <message>
-        <location filename="../assets/main.qml" line="178"/>
-        <location filename="../assets/main.qml" line="185"/>
-        <source>Comments</source>
         <translation type="unfinished"></translation>
     </message>
 </context>
