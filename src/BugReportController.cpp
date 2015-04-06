@@ -24,8 +24,11 @@
 #include <bb/cascades/ColorTheme>
 #include <bb/cascades/Theme>
 
+#include <bb/system/SystemDialog>
+#include <bb/system/SystemToast>
 
 #include "BugDataObject.h"
+#include "PrivateAPIKeys.hpp"
 
 #define GITHUB_URL      QString("https://api.github.com/repos/")
 #define REPOSITORY      QString("amonchakai/hg10")
@@ -34,7 +37,7 @@
 QMap<QString, int>  BugReportController::m_Labels;
 
 
-BugReportController::BugReportController(QObject *parent) : QObject(parent), m_ListView(NULL), m_TypeIssue(0) {
+BugReportController::BugReportController(QObject *parent) : QObject(parent), m_ListView(NULL), m_TypeIssue(0), m_TmpLabel(0) {
 
     m_NetworkAccessManager = new QNetworkAccessManager(this);
 
@@ -391,6 +394,7 @@ void BugReportController::parseOneDescription(const QString &description) {
     QString message = body.cap(1);
     message.replace("\\r\\n", "<br/>");
     message.replace("\\\"", "\"");
+    message.replace("\\n", "<br/>");
 
 
     // ----------------------------------------------------------
@@ -456,3 +460,222 @@ void BugReportController::initWebPage() {
     }
 
 }
+
+
+
+
+
+
+
+// ========================================================================================================
+// Insert a new issue
+
+
+
+
+void BugReportController::insertIssue(const QString &title, const QString &body, int label) {
+    // get the list of issues
+    m_TmpTitle = title;
+    m_TmpBody = body;
+    m_TmpLabel = label;
+
+    if(title.isEmpty()) {
+        bb::system::SystemToast *toast = new bb::system::SystemToast(this);
+
+        toast->setBody(tr("A title is required."));
+        toast->setPosition(bb::system::SystemUiPosition::MiddleCenter);
+        toast->show();
+        return;
+
+    }
+
+    using namespace bb::cascades;
+    using namespace bb::system;
+
+    SystemDialog *dialog = new SystemDialog("Yes", "No");
+
+    dialog->setTitle(tr("Create a new issue"));
+    dialog->setBody(tr("Do you want to submit this issue? Please make sure that the content of the message is anonymous."));
+
+    bool success = connect(dialog,
+         SIGNAL(finished(bb::system::SystemUiResult::Type)),
+         this,
+         SLOT(onPromptFinishedCreateIssue(bb::system::SystemUiResult::Type)));
+
+    if (success) {
+        dialog->show();
+    } else {
+        dialog->deleteLater();
+    }
+}
+
+
+
+void BugReportController::onPromptFinishedCreateIssue(bb::system::SystemUiResult::Type result) {
+
+    using namespace bb::cascades;
+    using namespace bb::system;
+
+    if(result != bb::system::SystemUiResult::ConfirmButtonSelection) {
+        SystemDialog* prompt = qobject_cast<SystemDialog*>(sender());
+        prompt->deleteLater();
+        return;
+    }
+
+    SystemDialog* prompt = qobject_cast<SystemDialog*>(sender());
+    prompt->deleteLater();
+
+    const QUrl url(GITHUB_URL + REPOSITORY + "/issues");
+
+
+    QString label_str = m_Labels.key(m_TmpLabel);
+
+
+    QByteArray datas;
+    datas += QString("{").toAscii();
+    datas += QString(QString("\"title\": \"") + m_TmpTitle + "\",").toAscii();
+    datas += QString(QString("\"body\": \"") + m_TmpBody + "\",").toAscii();
+    datas += QString(QString("\"labels\": [\"") + label_str + "\"]").toAscii();
+    datas += QString("}").toAscii();
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", (QString("token ") + GITHUB_ACCESS_TOKEN).toAscii());
+
+
+    QNetworkReply* reply = m_NetworkAccessManager->post(request, datas);
+    bool ok = connect(reply, SIGNAL(finished()), this, SLOT(checkReplyInsertIssue()));
+    Q_ASSERT(ok);
+    Q_UNUSED(ok);
+}
+
+void BugReportController::checkReplyInsertIssue() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+
+    QString response;
+    if (reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            const int available = reply->bytesAvailable();
+            if (available > 0) {
+                const QByteArray buffer(reply->readAll());
+                response = QString::fromUtf8(buffer);
+                qDebug() << response.mid(5);
+
+                listIssues(m_TmpLabel);
+                emit insertSuccess();
+            }
+        } else {
+            qDebug() << reply->errorString();
+        }
+
+        reply->deleteLater();
+    }
+}
+
+
+
+
+// ========================================================================================================
+// Insert a new comment
+
+
+
+
+void BugReportController::insertComment(const QString &body, int issueNumber) {
+    // get the list of issues
+    m_TmpBody = body;
+    m_TmpLabel = issueNumber;
+
+    if(body.isEmpty()) {
+        bb::system::SystemToast *toast = new bb::system::SystemToast(this);
+
+        toast->setBody(tr("A comment should not be empty."));
+        toast->setPosition(bb::system::SystemUiPosition::MiddleCenter);
+        toast->show();
+        return;
+
+    }
+
+    using namespace bb::cascades;
+    using namespace bb::system;
+
+    SystemDialog *dialog = new SystemDialog("Yes", "No");
+
+    dialog->setTitle(tr("Create a new comment"));
+    dialog->setBody(tr("Do you want to submit this comment? Please make sure that the content of the message is anonymous."));
+
+    bool success = connect(dialog,
+         SIGNAL(finished(bb::system::SystemUiResult::Type)),
+         this,
+         SLOT(onPromptFinishedCreateComment(bb::system::SystemUiResult::Type)));
+
+    if (success) {
+        dialog->show();
+    } else {
+        dialog->deleteLater();
+    }
+}
+
+
+
+void BugReportController::onPromptFinishedCreateComment(bb::system::SystemUiResult::Type result) {
+
+    using namespace bb::cascades;
+    using namespace bb::system;
+
+    if(result != bb::system::SystemUiResult::ConfirmButtonSelection) {
+        SystemDialog* prompt = qobject_cast<SystemDialog*>(sender());
+        prompt->deleteLater();
+        return;
+    }
+
+    SystemDialog* prompt = qobject_cast<SystemDialog*>(sender());
+    prompt->deleteLater();
+
+    const QUrl url(GITHUB_URL + REPOSITORY + "/issues/" + QString::number(m_TmpLabel) + "/comments");
+
+
+    QString label_str = m_Labels.key(m_TmpLabel);
+
+
+    QByteArray datas;
+    datas += QString("{").toAscii();
+    datas += QString(QString("\"body\": \"") + m_TmpBody + "\"").toAscii();
+    datas += QString("}").toAscii();
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/json");
+    request.setRawHeader("Authorization", (QString("token ") + GITHUB_ACCESS_TOKEN).toAscii());
+
+
+    QNetworkReply* reply = m_NetworkAccessManager->post(request, datas);
+    bool ok = connect(reply, SIGNAL(finished()), this, SLOT(checkReplyInsertComment()));
+    Q_ASSERT(ok);
+    Q_UNUSED(ok);
+}
+
+void BugReportController::checkReplyInsertComment() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+
+    QString response;
+    if (reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            const int available = reply->bytesAvailable();
+            if (available > 0) {
+                const QByteArray buffer(reply->readAll());
+                response = QString::fromUtf8(buffer);
+                qDebug() << response.mid(5);
+
+                loadIssue(m_TmpLabel);
+                emit insertCommentSuccess();
+            }
+        } else {
+            qDebug() << reply->errorString();
+        }
+
+        reply->deleteLater();
+    }
+}
+
+
+

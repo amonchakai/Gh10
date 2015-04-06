@@ -11,6 +11,7 @@
 #include <QtCore/QObject>
 #include <bb/cascades/ListView>
 #include <bb/cascades/WebView>
+#include <bb/system/SystemUiResult>
 
 class QNetworkAccessManager;
 class IssueListItem;
@@ -31,6 +32,9 @@ private:
     QList<IssueListItem*>            m_Issues;
     QString                          m_IssueDescription;
 
+
+    QString                          m_TmpTitle, m_TmpBody;
+    int                              m_TmpLabel;
 
 
     void parseIssues                 (const QString& page);
@@ -56,15 +60,24 @@ public Q_SLOTS:
 
     void listIssues                  (int typeIssues);
     void loadIssue                   (int issue);
-
+    void insertIssue                 (const QString &title, const QString &body, int label);
+    void insertComment               (const QString &body, int issueNumber);
 
 
     void checkReplyIssues            ();
     void checkReplyIssueDescription  ();
+    void checkReplyInsertIssue       ();
+    void checkReplyInsertComment     ();
+
+    void onPromptFinishedCreateIssue(bb::system::SystemUiResult::Type);
+    void onPromptFinishedCreateComment(bb::system::SystemUiResult::Type);
+
 
 Q_SIGNALS:
 
     void completed();
+    void insertSuccess();
+    void insertCommentSuccess();
 
 
 };

@@ -9,6 +9,7 @@ Page {
     property string catImg
     
     property variant issuePage
+    property variant createIssuePage
     
     titleBar: TitleBar {
         kind: TitleBarKind.FreeForm
@@ -123,16 +124,9 @@ Page {
                             preferredHeight: ui.du(11)
                              
                             Container {
-                                preferredWidth: ui.du(0.3)
+                                preferredWidth: ui.du(0.6)
                             }
                              
-                            ImageView {
-                                imageSource: "asset:///images/issue_green.png"
-                                minHeight: ui.du(3)
-                                minWidth: ui.du(3)
-                                scalingMethod: ScalingMethod.AspectFit
-                                verticalAlignment: VerticalAlignment.Center
-                            }
                              
                             Container {
                                 layout: DockLayout {}
@@ -198,6 +192,7 @@ Page {
                     if(!issuePage)
                         issuePage = issueViewer.createObject();
                     
+                    issuePage.caption = chosenItem.title;
                     issuePage.number = chosenItem.number;
                     navBug.push(issuePage);                                    
                 
@@ -213,6 +208,14 @@ Page {
             title: qsTr("New")
             ActionBar.placement: ActionBarPlacement.Signature
             imageSource: "asset:///images/icon_pen.png"
+            
+            onTriggered: {
+                if(!createIssuePage)
+                    createIssuePage = composeIssue.createObject();
+                
+                createIssuePage.label = typeIssue;
+                navBug.push(createIssuePage);
+            }
         }
         
     ]
@@ -233,10 +236,23 @@ Page {
             onCompleted: {
                 connectingActivity.stop();
             }
+            
+            onInsertSuccess: {
+                navBug.pop();
+                connectingActivity.start();
+            }
+            
+            onInsertCommentSuccess: {
+                navBug.pop();
+            }
         },
         ComponentDefinition {
             id: issueViewer
             source: "IssueViewer.qml"
+        },
+        ComponentDefinition {
+            id: composeIssue
+            source: "ComposeIssue.qml"
         }
     ]
 }
