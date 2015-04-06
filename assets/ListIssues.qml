@@ -8,6 +8,8 @@ Page {
     property string category
     property string catImg
     
+    property variant issuePage
+    
     titleBar: TitleBar {
         kind: TitleBarKind.FreeForm
         kindProperties: FreeFormTitleBarKindProperties {
@@ -189,6 +191,17 @@ Page {
                          }
                      }
                 ]
+                
+                onTriggered: {
+                    var chosenItem = dataModel.data(indexPath);
+                    
+                    if(!issuePage)
+                        issuePage = issueViewer.createObject();
+                    
+                    issuePage.number = chosenItem.number;
+                    navBug.push(issuePage);                                    
+                
+                }
             }
             
         }
@@ -209,7 +222,7 @@ Page {
     }
     
     onTypeIssueChanged: {
-        bugReportController.loadIssues(typeIssue);
+        bugReportController.listIssues(typeIssue);
         connectingActivity.start();
     }
     
@@ -220,6 +233,10 @@ Page {
             onCompleted: {
                 connectingActivity.stop();
             }
+        },
+        ComponentDefinition {
+            id: issueViewer
+            source: "IssueViewer.qml"
         }
     ]
 }

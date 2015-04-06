@@ -4,17 +4,17 @@
 <context>
     <name>ListIssues</name>
     <message>
-        <location filename="../assets/ListIssues.qml" line="67"/>
+        <location filename="../assets/ListIssues.qml" line="69"/>
         <source>Loading, please wait.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/ListIssues.qml" line="67"/>
+        <location filename="../assets/ListIssues.qml" line="69"/>
         <source>No issues in this category.</source>
         <translation type="unfinished"></translation>
     </message>
     <message>
-        <location filename="../assets/ListIssues.qml" line="200"/>
+        <location filename="../assets/ListIssues.qml" line="213"/>
         <source>New</source>
         <translation type="unfinished"></translation>
     </message>

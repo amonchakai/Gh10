@@ -10,6 +10,7 @@
 
 #include <QtCore/QObject>
 #include <bb/cascades/ListView>
+#include <bb/cascades/WebView>
 
 class QNetworkAccessManager;
 class IssueListItem;
@@ -23,16 +24,22 @@ private:
     static QMap<QString, int>        m_Labels;
 
     bb::cascades::ListView          *m_ListView;
+    bb::cascades::WebView           *m_WebView;
     QNetworkAccessManager           *m_NetworkAccessManager;
 
     int                              m_TypeIssue;
     QList<IssueListItem*>            m_Issues;
+    QString                          m_IssueDescription;
 
 
 
     void parseIssues                 (const QString& page);
     void parseOneIssue               (const QString& issue);
     void updateView                  ();
+
+    void parseIssuesDescription      (const QString &page);
+    void parseOneDescription         (const QString &description);
+    void initWebPage                 ();
 
 
 public:
@@ -44,14 +51,16 @@ public:
 public Q_SLOTS:
 
     inline void setListView          (QObject *list)                  { m_ListView = dynamic_cast<bb::cascades::ListView*>(list); };
+    inline void setWebView           (QObject *web)                   { m_WebView = dynamic_cast<bb::cascades::WebView*>(web); };
 
 
-    void loadIssues                  (int typeIssues);
+    void listIssues                  (int typeIssues);
+    void loadIssue                   (int issue);
 
 
 
     void checkReplyIssues            ();
-
+    void checkReplyIssueDescription  ();
 
 Q_SIGNALS:
 

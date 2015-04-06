@@ -19,6 +19,12 @@
 #include <bb/cascades/AbstractPane>
 #include <bb/cascades/GroupDataModel>
 
+#include <bb/cascades/Application>
+#include <bb/cascades/ThemeSupport>
+#include <bb/cascades/ColorTheme>
+#include <bb/cascades/Theme>
+
+
 #include "BugDataObject.h"
 
 #define GITHUB_URL      QString("https://api.github.com/repos/")
@@ -42,7 +48,17 @@ BugReportController::BugReportController(QObject *parent) : QObject(parent), m_L
 }
 
 
-void BugReportController::loadIssues(int typeIssues) {
+
+
+
+
+// ========================================================================================================
+// list all the issues corresponding to the specified category
+
+
+
+
+void BugReportController::listIssues(int typeIssues) {
 //    curl -i  https://api.github.com/repos/amonchakai/hg10/issues
     m_TypeIssue = typeIssues;
 
@@ -231,3 +247,212 @@ void BugReportController::updateView() {
 }
 
 
+
+
+
+
+// ========================================================================================================
+// Render the content of one issue
+
+void BugReportController::loadIssue(int number) {
+    m_IssueDescription.clear();
+
+    // get the list of issues
+    const QUrl url(GITHUB_URL + REPOSITORY + "/issues/" + QString::number(number));
+
+
+    QNetworkRequest request(url);
+    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+
+    QNetworkReply* reply = m_NetworkAccessManager->get(request);
+    bool ok = connect(reply, SIGNAL(finished()), this, SLOT(checkReplyIssueDescription()));
+    Q_ASSERT(ok);
+    Q_UNUSED(ok);
+
+}
+
+
+
+void BugReportController::checkReplyIssueDescription() {
+    QNetworkReply* reply = qobject_cast<QNetworkReply*>(sender());
+
+    QString response;
+    if (reply) {
+        if (reply->error() == QNetworkReply::NoError) {
+            const int available = reply->bytesAvailable();
+            if (available > 0) {
+                const QByteArray buffer(reply->readAll());
+                response = QString::fromUtf8(buffer);
+                parseIssuesDescription(response);
+
+
+
+                // get the comments. If this is the main description of the page, the url end with the issue number.
+                // then we only need to request /comments.
+                QString isNumber = (reply->url().toString().mid(reply->url().toString().lastIndexOf("/")+1));
+                bool ok;
+                isNumber.toInt(&ok);
+                if(ok) {
+                    QNetworkRequest request(QUrl(reply->url().toString() + "/comments"));
+                    request.setHeader(QNetworkRequest::ContentTypeHeader, "application/x-www-form-urlencoded");
+
+
+                    QNetworkReply* reply = m_NetworkAccessManager->get(request);
+                    bool ok = connect(reply, SIGNAL(finished()), this, SLOT(checkReplyIssueDescription()));
+                    Q_ASSERT(ok);
+                    Q_UNUSED(ok);
+                } else {
+
+                    // if the URL end with comments, then we can do render the page
+                    initWebPage();
+                }
+            }
+        }
+
+        reply->deleteLater();
+    }
+}
+
+void BugReportController::parseIssuesDescription(const QString &page) {
+    // ----------------------------------------------------------------------------------------------
+    // Parse issues using regexp
+
+    QRegExp regexp("\"user\":"); // find the beginning of one issue or comment
+
+    regexp.setCaseSensitivity(Qt::CaseSensitive);
+    regexp.setMinimal(true);
+
+
+    int pos = 0;
+    int lastPos = regexp.indexIn(page, pos);
+
+    while((pos = regexp.indexIn(page, lastPos)) != -1) {
+        pos += regexp.matchedLength();
+        // parse each post individually
+        parseOneDescription(page.mid(lastPos, pos-lastPos));
+
+
+        lastPos = pos;
+    }
+    parseOneDescription(page.mid(lastPos, pos-lastPos));
+
+}
+
+void BugReportController::parseOneDescription(const QString &description) {
+
+    // ________________________________________________________
+    // RegExp
+
+    /*
+     * "user": {
+      "login": "amonchakai",
+      "id": 6967372,
+      "avatar_url": "https://avatars.githubusercontent.com/u/6967372?v=3",
+     *
+     */
+
+    QRegExp user("\"login\":\"([^\"]+)\".*\"avatar_url\":\"([^\"]+)\"");
+
+    /*
+    "labels": [
+          {
+            "url": "https://api.github.com/repos/amonchakai/Hg10/labels/bug",
+            "name": "bug",
+            "color": "fc2929"
+          }
+    */
+    QRegExp created_at("\"created_at\":\"([^\"]+)\"");
+    QRegExp body("\"body\":\"(.*)\"(,\"closed_by\":|" + QRegExp::escape("}") + ")");
+    body.setMinimal(true);
+
+
+    // ________________________________________________________
+    // parse issue
+
+    int pos = user.indexIn(description);         if(pos == -1) return;
+    pos += user.matchedLength();
+
+    pos = created_at.indexIn(description);
+    pos += created_at.matchedLength();
+
+    pos = body.indexIn(description);
+
+
+    // --------------------------------------------------------
+    // prepare rendering of messages
+
+
+    QString blackTheme = "style=\"font-size:25px; \"";
+    if(bb::cascades::Application::instance()->themeSupport()->theme()->colorTheme()->style() == bb::cascades::VisualStyle::Dark) {
+        blackTheme = " style=\"background:#2E2E2E; font-size:25px; \" ";
+    }
+
+    QString message = body.cap(1);
+    message.replace("\\r\\n", "<br/>");
+    message.replace("\\\"", "\"");
+
+
+    // ----------------------------------------------------------
+    // replace images
+    QRegExp imageRegExp(QRegExp::escape("![") + "img.[0-9]+.[0-9]+..(https://[^" + QRegExp::escape(")") + "]+)"+QRegExp::escape(")"));
+    QString cleanPost = "";
+    int lastPos = 0;
+    pos = 0;
+    while((pos = imageRegExp.indexIn(message, pos)) != -1) {
+        cleanPost += message.mid(lastPos, pos-lastPos);
+
+        cleanPost += "<img src=\"" + imageRegExp.cap(1) + "\" />";
+        pos += imageRegExp.matchedLength();
+        lastPos = pos;
+    }
+    cleanPost += message.mid(lastPos, message.length()-lastPos);
+    message = cleanPost;
+
+
+    // ----------------------------------------------------------
+    // rendering
+
+    m_IssueDescription +=
+    QString("<div class=\"PostHeader\" >")
+                + "<div style=\"height:80%; width:auto; position:relative; top:10%; left:5px; width:100px; display: inline-block;\" ><img src=\"" + user.cap(2) + "\" style=\"height:100%; width:auto; margin-left: auto; margin-right: auto; display: block;\" /></div>"
+                + "<div class=\"PostHeader-Text\">"
+                    + "<div style=\"position:relative; top:-20px;\"><p " + blackTheme +">" + user.cap(1) + "</p></div>"
+                    + "<div style=\"position:relative; top:-35px; font-size:small;\"><p " + blackTheme +">" + created_at.cap(1) + "</p></div>"
+                + "</div>"
+             + "</div><p>" + message + "</p>";
+
+
+}
+
+
+void BugReportController::initWebPage() {
+    // ----------------------------------------------------------------------------------------------
+    // get the dataModel of the listview if not already available
+    using namespace bb::cascades;
+
+
+    if(m_WebView == NULL) {
+        qWarning() << "did not received the listview. quit.";
+        return;
+    }
+
+    QFile htmlTemplateFile(QDir::currentPath() + "/app/native/assets/template.html");
+    if(bb::cascades::Application::instance()->themeSupport()->theme()->colorTheme()->style() == bb::cascades::VisualStyle::Dark) {
+        htmlTemplateFile.setFileName(QDir::currentPath() + "/app/native/assets/template_black.html");
+    }
+    QFile htmlEndTemplateFile(QDir::currentPath() + "/app/native/assets/template_end.html");
+    if (htmlTemplateFile.open(QIODevice::ReadOnly) && htmlEndTemplateFile.open(QIODevice::ReadOnly)) {
+        QString htmlTemplate = htmlTemplateFile.readAll();
+
+
+        QString endTemplate = htmlEndTemplateFile.readAll();
+
+
+
+        m_WebView->setHtml(htmlTemplate + m_IssueDescription + endTemplate, QUrl("local:///assets/"));
+
+
+    }
+
+}
